@@ -4,29 +4,41 @@ import tqdm
 import os
 import argparse
 import sys
+import re
+from datetime import datetime
 
-OLLAMA_URL = "http://localhost:11434/api/generate" 
-MODEL_NAME = "gemma_TLDR"
-OUTPUT_PATH = "data/paper_html_10.1038/abs_annotation/generated_annotations/gemma3.txt"
-LOG_PATH = "data/paper_html_10.1038/abs_annotation/generated_annotations/gemma3.log"
+OLLAMA_URL = "http://localhost:11434/api/generate"
+
+def remove_think_content(text):
+    # 去除所有<think>...</think>及其内容（跨多行也可）
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE).strip()
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_name", type=str, required=True, help="Ollama模型名称")
+    parser.add_argument("--start_index", type=int, default=0, help="开始处理的test数据行号（从0开始）")
+    args = parser.parse_args()
+    model_name = args.model_name
+    start_index = args.start_index
+
+    # 自动根据模型名生成结果和日志文件路径
+    result_dir = "data/paper_html_10.1038/abs_annotation/generated_annotations"
+    output_filename = f"{model_name}.txt"
+    log_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = f"{model_name}_{log_time}.log"
+    OUTPUT_PATH = os.path.join(result_dir, output_filename)
+    LOG_PATH = os.path.join(result_dir, log_filename)
+
+    os.makedirs(result_dir, exist_ok=True)
+
     test_df = pd.read_csv("data/paper_html_10.1038/abs_annotation/test.tsv", sep="\t")
     test_abstracts = test_df["abstract"].tolist()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--start_index", type=int, default=0, help="开始处理的test数据行号（从0开始）")
-    args = parser.parse_args()
-    start_index = args.start_index
-
-    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
-
-    # 打开输出文件和日志文件
     with open(OUTPUT_PATH, "a", encoding="utf-8") as f_out, open(LOG_PATH, "a", encoding="utf-8") as f_log:
         try:
             for i in tqdm.tqdm(range(start_index, len(test_abstracts)), desc="Generating TLDR", total=len(test_abstracts)-start_index, unit="annotation"):
                 payload = {
-                    "model": MODEL_NAME,
+                    "model": model_name,
                     "prompt": test_abstracts[i],
                     "stream": False
                 }
@@ -41,8 +53,10 @@ def main():
                     f_log.write(error_str)
                     f_log.flush()
                     sys.exit(1)
-                # 只写TLDR到结果文件
-                f_out.write(generated_tldr.strip() + "\n")
+                # 过滤掉<think>...</think>部分，只写一行TLDR到结果文件
+                filtered_tldr = remove_think_content(generated_tldr)
+                filtered_tldr_single_line = " ".join(filtered_tldr.split())
+                f_out.write(filtered_tldr_single_line + "\n")
                 f_out.flush()
         except KeyboardInterrupt:
             info_str = f"\n[INFO] 进程被中断，下次请从 --start_index={i} 继续。\n"
