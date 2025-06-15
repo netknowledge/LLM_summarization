@@ -17,21 +17,27 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name", type=str, required=True, help="Ollama模型名称")
     parser.add_argument("--start_index", type=int, default=0, help="开始处理的test数据行号（从0开始）")
+    parser.add_argument("--abstract_type", type=str, default="full", choices=["sent_shuffle", "tail"], help="使用的摘要类型，默认为'full'")
     args = parser.parse_args()
     model_name = args.model_name
     start_index = args.start_index
+    abstract_type = args.abstract_type
 
     # 自动根据模型名生成结果和日志文件路径
     result_dir = "data/paper_html_10.1038/abs_annotation/generated_annotations"
-    output_filename = f"{model_name}.txt"
+    output_filename = f"{model_name+ f"_{abstract_type}" if abstract_type != "full" else model_name}.txt"
     log_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_filename = f"{model_name}_{log_time}.log"
+    log_filename = f"{model_name+ f"_{abstract_type}" if abstract_type != "full" else model_name}_{log_time}.log"
     OUTPUT_PATH = os.path.join(result_dir, output_filename)
     LOG_PATH = os.path.join(result_dir, log_filename)
 
     os.makedirs(result_dir, exist_ok=True)
 
-    test_df = pd.read_csv("data/paper_html_10.1038/abs_annotation/test.tsv", sep="\t")
+    if abstract_type == 'full':
+        TESTSET_PATH = "data/paper_html_10.1038/abs_annotation/test.tsv"
+    else:
+        TESTSET_PATH = f"data/paper_html_10.1038/abs_annotation/test_{abstract_type}.tsv"
+    test_df = pd.read_csv(TESTSET_PATH, sep="\t")
     test_abstracts = test_df["abstract"].tolist()
 
     with open(OUTPUT_PATH, "a", encoding="utf-8") as f_out, open(LOG_PATH, "a", encoding="utf-8") as f_log:
