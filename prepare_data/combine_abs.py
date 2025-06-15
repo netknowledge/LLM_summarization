@@ -13,7 +13,7 @@ def find_all_tsv_files(root_dir):
     return glob(pattern)
 
 def merge_tsv_files(tsv_files, output_file):
-    header = ["abs doi", "paper_id", "abstract", "annotation"]
+    header = ["abs_doi", "paper_id", "abstract", "annotation"]
     write_header = True
     with open(output_file, "w", encoding="utf-8", newline='') as outfile:
         writer = csv.writer(outfile, delimiter='\t')
