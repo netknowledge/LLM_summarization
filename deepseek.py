@@ -32,13 +32,23 @@ for i in range(len(train_df)):
         "content": train_annotations[i]
     })
 
-test_df = pd.read_csv("data/paper_html_10.1038/abs_annotation/test.tsv", sep="\t")
-test_abstracts = test_df["abstract"].tolist()
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--start_index", type=int, default=0, help="开始处理的test数据行号（从0开始）")
+parser.add_argument("--abstract_type", type=str, default="full", choices=["sent_shuffle", "tail"], help="使用的摘要类型，默认为'full'")
 args = parser.parse_args()
 start_index = args.start_index
+abstract_type = args.abstract_type
+
+if abstract_type != "full":
+    TESTSET_PATH = f"data/paper_html_10.1038/abs_annotation/test_{abstract_type}.tsv"
+    OUTPUT_PATH = f"data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3_{abstract_type}.txt"
+else:
+    TESTSET_PATH = "data/paper_html_10.1038/abs_annotation/test.tsv"
+    OUTPUT_PATH = "data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3.txt"
+
+test_df = pd.read_csv(TESTSET_PATH, sep="\t")
+test_abstracts = test_df["abstract"].tolist()
+os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
 
 for i in tqdm.tqdm(range(start_index, len(test_df)), desc="Generating annotations", total=len(test_df)-start_index, unit="annotation"):
     query_messages = [{
@@ -53,7 +63,6 @@ for i in tqdm.tqdm(range(start_index, len(test_df)), desc="Generating annotation
     )
 
     generated_annotation = completion.choices[0].message.content or ""
-    OUTPUT_PATH = "data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3.txt"
-    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
+
     with open(OUTPUT_PATH, "a", encoding="utf-8") as f:
         f.write(generated_annotation + "\n")
