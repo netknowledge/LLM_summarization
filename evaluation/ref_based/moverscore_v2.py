@@ -24,6 +24,7 @@ if os.environ.get('MOVERSCORE_MODEL'):
 else:
     model_name = 'distilbert-base-uncased'
 tokenizer = AutoTokenizer.from_pretrained(model_name, do_lower_case=True)
+print(tokenizer.model_max_length)
 model = AutoModel.from_pretrained(model_name, output_hidden_states=True, output_attentions=True)
 model.eval()
 model.to(device)
@@ -54,7 +55,7 @@ def get_idf_dict(arr, nthreads=4):
 
 def padding(arr, pad_token, dtype=torch.long):
     lens = torch.LongTensor([len(a) for a in arr])
-    max_len = lens.max().item()
+    max_len = int(lens.max().item())
     padded = torch.ones(len(arr), max_len, dtype=dtype) * pad_token
     mask = torch.zeros(len(arr), max_len, dtype=torch.long)
     for i, a in enumerate(arr):
