@@ -41,10 +41,10 @@ abstract_type = args.abstract_type
 
 if abstract_type != "full":
     TESTSET_PATH = f"data/paper_html_10.1038/abs_annotation/test_{abstract_type}.tsv"
-    OUTPUT_PATH = f"data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3_{abstract_type}.txt"
+    OUTPUT_PATH = f"data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3_TLDR_{abstract_type}.txt"
 else:
     TESTSET_PATH = "data/paper_html_10.1038/abs_annotation/test.tsv"
-    OUTPUT_PATH = "data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3.txt"
+    OUTPUT_PATH = "data/paper_html_10.1038/abs_annotation/generated_annotations/deepseek_v3_TLDR.txt"
 
 test_df = pd.read_csv(TESTSET_PATH, sep="\t")
 test_abstracts = test_df["abstract"].tolist()
@@ -63,6 +63,7 @@ for i in tqdm.tqdm(range(start_index, len(test_df)), desc="Generating annotation
     )
 
     generated_annotation = completion.choices[0].message.content or ""
+    generated_annotation = " ".join(generated_annotation.split()) # keep the generated text in one line
 
     with open(OUTPUT_PATH, "a", encoding="utf-8") as f:
         f.write(generated_annotation + "\n")
