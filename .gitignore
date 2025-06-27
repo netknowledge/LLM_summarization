@@ -1,3 +1,10 @@
 api_key/
 data/
 archive/
+evaluation/predict_task/cached_title_distilbert_abstract/
+evaluation/predict_task/cached_title_distilbert_annotation/
+evaluation/predict_task/cached_title_distilbert_deepseek_v3/
+evaluation/predict_task/cached_title_distilbert_gemma3/
+evaluation/predict_task/cached_title_distilbert_qwen3/
+evaluation/predict_task/cached_title_distilbert_llama4/
+evaluation/predict_task/cached_title_distilbert_qwq/
