@@ -1,15 +1,14 @@
-import os
-import sys
 import csv
 import random
 import argparse
 from tqdm import tqdm
-import re
+import nltk
+from nltk.tokenize import sent_tokenize
+
+nltk.download('punkt', quiet=True)
 
 def split_sentences(text):
-    # Simple sentence splitter based on punctuation. This is not perfect but works for most English scientific abstracts.
-    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
-    sentences = [s for s in sentences if s]
+    sentences = sent_tokenize(text.strip())
     return sentences
 
 def main(input_path, type_):
@@ -23,6 +22,8 @@ def main(input_path, type_):
          open(output_path, 'w', newline='', encoding='utf-8') as outfile:
         reader = csv.DictReader(infile, delimiter='\t')
         fieldnames = reader.fieldnames
+        if fieldnames is None:
+            raise ValueError("Input file is missing a header row or is malformed.")
         writer = csv.DictWriter(outfile, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
 
@@ -30,6 +31,7 @@ def main(input_path, type_):
         for row in tqdm(rows, desc="Processing"):
             abstract = row['abstract']
             sentences = split_sentences(abstract)
+            new_abstract = abstract  # Default assignment to avoid unbound error
             if type_ == "sent_shuffle":
                 random.shuffle(sentences)
                 new_abstract = ' '.join(sentences)

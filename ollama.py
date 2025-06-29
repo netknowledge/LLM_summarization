@@ -3,15 +3,20 @@ import requests
 import tqdm
 import os
 import argparse
-import sys
 import re
-from datetime import datetime
+import nltk
+from nltk.tokenize import word_tokenize
 
+nltk.download('punkt', quiet=True)
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
 def remove_think_content(text):
     # 去除所有<think>...</think>及其内容（跨多行也可）
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE).strip()
+
+def word_count(text):
+    words = word_tokenize(text)
+    return len(words)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -26,10 +31,7 @@ def main():
     # 自动根据模型名生成结果和日志文件路径
     result_dir = "data/paper_html_10.1038/abs_annotation/generated_annotations"
     output_filename = f"{model_name+ f"_{abstract_type}" if abstract_type != "full" else model_name}.txt"
-    log_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_filename = f"{model_name+ f"_{abstract_type}" if abstract_type != "full" else model_name}_{log_time}.log"
     OUTPUT_PATH = os.path.join(result_dir, output_filename)
-    LOG_PATH = os.path.join(result_dir, log_filename)
 
     os.makedirs(result_dir, exist_ok=True)
 
@@ -39,37 +41,27 @@ def main():
         TESTSET_PATH = f"data/paper_html_10.1038/abs_annotation/test_{abstract_type}.tsv"
     test_df = pd.read_csv(TESTSET_PATH, sep="\t")
     test_abstracts = test_df["abstract"].tolist()
+    test_annotations = test_df['annotation'].tolist()
 
-    with open(OUTPUT_PATH, "a", encoding="utf-8") as f_out, open(LOG_PATH, "a", encoding="utf-8") as f_log:
-        try:
-            for i in tqdm.tqdm(range(start_index, len(test_abstracts)), desc="Generating TLDR", total=len(test_abstracts)-start_index, unit="annotation"):
-                payload = {
-                    "model": model_name,
-                    "prompt": test_abstracts[i],
-                    "stream": False
-                }
-                try:
-                    response = requests.post(OLLAMA_URL, json=payload)
-                    response.raise_for_status()
-                    result = response.json()
-                    generated_tldr = result.get("response", "") or ""
-                except Exception as e:
-                    error_str = f"\n[ERROR] Failed at index {i}: {e}\n请下次从 --start_index={i} 继续。\n"
-                    print(error_str, end="", file=sys.stderr)
-                    f_log.write(error_str)
-                    f_log.flush()
-                    sys.exit(1)
-                # 过滤掉<think>...</think>部分，只写一行TLDR到结果文件
-                filtered_tldr = remove_think_content(generated_tldr)
-                filtered_tldr_single_line = " ".join(filtered_tldr.split())
-                f_out.write(filtered_tldr_single_line + "\n")
-                f_out.flush()
-        except KeyboardInterrupt:
-            info_str = f"\n[INFO] 进程被中断，下次请从 --start_index={i} 继续。\n"
-            print(info_str, end="", file=sys.stderr)
-            f_log.write(info_str)
-            f_log.flush()
-            sys.exit(0)
+    with open(OUTPUT_PATH, "a", encoding="utf-8") as f_out:
+        for i in tqdm.tqdm(range(start_index, len(test_abstracts)), desc="Generating TLDR", 
+                           total=len(test_abstracts)-start_index, unit="annotation"):
+            payload = {
+                "model": model_name + "_TLDR",
+                "prompt": '[Abstract] ' + test_abstracts[i] + f'[Word count: {word_count(test_annotations[i])}]',
+                "stream": False
+            }
+
+            response = requests.post(OLLAMA_URL, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            generated_tldr = result.get("response", "") or ""
+
+            # 过滤掉<think>...</think>部分，只写一行TLDR到结果文件
+            filtered_tldr = remove_think_content(generated_tldr)
+            filtered_tldr_single_line = " ".join(filtered_tldr.split())
+            f_out.write(filtered_tldr_single_line + "\n")
+            f_out.flush()
 
 if __name__ == "__main__":
     main()
