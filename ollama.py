@@ -28,7 +28,7 @@ def main():
     start_index = args.start_index
     abstract_type = args.abstract_type
 
-    # 自动根据模型名生成结果和日志文件路径
+    # 自动根据模型名生成结果文件路径
     result_dir = "data/paper_html_10.1038/abs_annotation/generated_annotations"
     output_filename = f"{model_name+ f"_{abstract_type}" if abstract_type != "full" else model_name}.txt"
     OUTPUT_PATH = os.path.join(result_dir, output_filename)
@@ -51,6 +51,8 @@ def main():
                 "prompt": '[Abstract] ' + test_abstracts[i] + f'[Word count: {word_count(test_annotations[i])}]',
                 "stream": False
             }
+            if model_name == 'qwen3':
+                payload['think'] = False
 
             response = requests.post(OLLAMA_URL, json=payload)
             response.raise_for_status()
