@@ -17,14 +17,14 @@ from tqdm import tqdm
 
 from transformers import AutoTokenizer, AutoModel
 
-device = 'cuda'
+device = 'cuda:2'
 
 if os.environ.get('MOVERSCORE_MODEL'):
     model_name = os.environ.get('MOVERSCORE_MODEL')
 else:
     model_name = 'distilbert-base-uncased'
 tokenizer = AutoTokenizer.from_pretrained(model_name, do_lower_case=True)
-print(tokenizer.model_max_length)
+print("tokenizer.model_max_length: ", tokenizer.model_max_length)
 model = AutoModel.from_pretrained(model_name, output_hidden_states=True, output_attentions=True)
 model.eval()
 model.to(device)
@@ -76,7 +76,7 @@ def bert_encode(model, x, attention_mask):
 #    stop_words = set(f.read().strip().split(' '))
 
 def collate_idf(arr, tokenize, numericalize, idf_dict,
-                pad="[PAD]",device='cuda:0'):
+                pad="[PAD]",device=device):
     
     tokens = [["[CLS]"]+truncate(tokenize(a))+["[SEP]"] for a in arr]  
     arr = [numericalize(a) for a in tokens]
@@ -94,7 +94,7 @@ def collate_idf(arr, tokenize, numericalize, idf_dict,
     return padded, padded_idf, lens, mask, tokens
 
 def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
-                       batch_size=-1,device='cuda:0'):
+                       batch_size=-1,device=device):
 
     padded_sens, padded_idf, lens, mask, tokens = collate_idf(all_sens,
                                                       tokenizer.tokenize, tokenizer.convert_tokens_to_ids,
@@ -129,7 +129,7 @@ def batched_cdist_l2(x1, x2):
     return res
 
 def word_mover_score(refs, hyps, idf_dict_ref, idf_dict_hyp, stop_words=[], n_gram=1, remove_subwords = True, 
-                     batch_size=128,device='cuda:0'):
+                     batch_size=128,device=device):
     preds = []
     for batch_start in tqdm(range(0, len(refs), batch_size), desc="Calculating WMS", total=len(refs)//batch_size+1):
         batch_refs = refs[batch_start:batch_start+batch_size]
@@ -180,7 +180,7 @@ def word_mover_score(refs, hyps, idf_dict_ref, idf_dict_hyp, stop_words=[], n_gr
 
 import matplotlib.pyplot as plt
 
-def plot_example(is_flow, reference, translation, device='cuda:0'):
+def plot_example(is_flow, reference, translation, device=device):
     
     idf_dict_ref = defaultdict(lambda: 1.) 
     idf_dict_hyp = defaultdict(lambda: 1.)
