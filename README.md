@@ -13,14 +13,14 @@ about their tendency to reinforce existing Matthew effect.
 
 # File location
 
-# Data
+## Data
 1. **LLM-generated summaries**: `data/paper_html_10.1038/abs_annotation/generated_annotations`
 
 2. **Human-authored summaries**: `data/paper_html_10.1038/abs_annotation/test.tsv`
 
 3. **The pre-packed dataset**: `data/dataset.csv`
 
-# Experiment code
+## Experiment code
 
 1. **LLMs are more faithful to the original**: `evaluation/ref_based`
 
