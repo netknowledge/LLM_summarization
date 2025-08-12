@@ -22,7 +22,6 @@ about their tendency to reinforce existing Matthew effect.
 
 ## Experiment code
 
-1. **LLMs are more faithful to the original**: `evaluation/ref_based`
-
+1. **LLMs are more extractive summarizer**: `evaluation/ref_based`
 2. **LLMs outperform human consistently**: `evaluation/predict_task`
 3. **LLMs mirror human’s citation bias**: `bias`
