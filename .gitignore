@@ -16,7 +16,6 @@ data/paper_html_10.1038/paper_html_10.1038_*
 data/paper_html_10.1038/paper_html_10.1038.json
 data/paper_html_10.1038/test_*
 data/paper_html_10.1038/abs_annotation/generated_annotations/unrestricted_length/
-data/paper_html_10.1038/abs_annotation/generated_annotations/*_sent_shuffle.txt
 data/MAG_paper.parquet
 data/doi_pid_dict.pkl
 data/doi_mag_pid_dict.pkl
