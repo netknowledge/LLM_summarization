@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from transformers import AutoTokenizer, AutoModel
 
-device = 'cuda:2'
+device = 'cuda'
 
 if os.environ.get('MOVERSCORE_MODEL'):
     model_name = os.environ.get('MOVERSCORE_MODEL')
