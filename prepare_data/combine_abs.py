@@ -12,12 +12,19 @@ def find_all_tsv_files(root_dir):
     pattern = os.path.join(root_dir, '[0-9]*', '*.tsv')
     return glob(pattern)
 
+def extract_annotation_doi(tsv_file):
+    """从文件名提取annotation_doi，格式为 10.1038/文件名(不含扩展名)"""
+    basename = os.path.basename(tsv_file)  # 获取文件名
+    name_without_ext = os.path.splitext(basename)[0]  # 去掉.tsv扩展名
+    return f"10.1038/{name_without_ext}"
+
 def merge_tsv_files(tsv_files, output_file):
-    header = ["abs_doi", "paper_id", "abstract", "annotation"]
+    header = ["abs_doi", "paper_id", "abstract", "annotation_doi", "annotation"]
     write_header = True
     with open(output_file, "w", encoding="utf-8", newline='') as outfile:
         writer = csv.writer(outfile, delimiter='\t')
         for tsv_file in tsv_files:
+            annotation_doi = extract_annotation_doi(tsv_file)
             with open(tsv_file, "r", encoding="utf-8") as infile:
                 reader = csv.reader(infile, delimiter='\t')
                 file_header = next(reader, None)
@@ -38,7 +45,9 @@ def merge_tsv_files(tsv_files, output_file):
                     if any(cell.strip() == "" or cell.strip() in ["#N/A", "#N/A N/A", "#NA", "-1.#IND", "-1.#QNAN", "-NaN", "-nan", "1.#IND", "1.#QNAN", "<NA>", "N/A", "NA", "NULL", "NaN", "None", "n/a", "nan", "null"] for cell in row):
                         print(f"Warning: {tsv_file} has empty cell in row: {row}")
                         continue
-                    writer.writerow(row)
+                    # 插入annotation_doi到第4列位置（索引3）
+                    new_row = row[:3] + [annotation_doi] + row[3:]
+                    writer.writerow(new_row)
 
 if __name__ == "__main__":
     tsv_files = find_all_tsv_files(ROOT_DIR)
