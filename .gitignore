@@ -20,5 +20,6 @@ data/MAG_paper.parquet
 data/doi_pid_dict.pkl
 data/doi_mag_pid_dict.pkl
 data/other_datasets/
+data/BART/
 evaluation/predict_task/sent_shuffle/
 evaluation/predict_task/tail/
