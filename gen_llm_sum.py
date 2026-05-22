@@ -71,7 +71,7 @@ def main():
             }
             if ollama_options:
                 payload["options"] = ollama_options
-            if model_name in ['qwen3', 'gpt_oss', 'deepseek_r1']:
+            if model_name in ['qwen3', 'gpt_oss', 'deepseek_r1', 'gemma4', 'qwen3.6']:
                 payload['think'] = False
 
             response = requests.post(OLLAMA_URL, json=payload)
