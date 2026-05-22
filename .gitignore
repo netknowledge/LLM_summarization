@@ -10,12 +10,11 @@ data/paper_html_10.1038/abs_annotation/9
 data/paper_html_10.1038/abs_annotation/10
 data/paper_html_10.1038/abs_annotation/11
 data/paper_html_10.1038/abs_annotation/demo
-data/paper_html_10.1038/abs_annotation/generated_annotations/length_unstricted
+data/paper_html_10.1038/abs_annotation/generated_annotations/
 data/paper_html_10.1038/doi_annotation
 data/paper_html_10.1038/paper_html_10.1038_*
 data/paper_html_10.1038/paper_html_10.1038.json
 data/paper_html_10.1038/test_*
-data/paper_html_10.1038/abs_annotation/generated_annotations/unrestricted_length/
 data/MAG_paper.parquet
 data/doi_pid_dict.pkl
 data/doi_mag_pid_dict.pkl
