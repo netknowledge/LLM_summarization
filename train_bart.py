@@ -56,11 +56,12 @@ def main():
     parser.add_argument("--num_epochs",            type=int,   default=10)
     parser.add_argument("--per_device_batch_size", type=int,   default=8)
     parser.add_argument("--grad_accum",            type=int,   default=2)
-    parser.add_argument("--lr",                    type=float, default=5e-5)
-    parser.add_argument("--warmup_ratio",          type=float, default=0.06)
+    parser.add_argument("--lr",                    type=float, default=1e-5)
+    parser.add_argument("--warmup_ratio",          type=float, default=0.1)
     parser.add_argument("--val_split",             type=float, default=0.05,
                         help="Fraction of train.tsv held out for validation")
-    parser.add_argument("--early_stopping_patience", type=int, default=3)
+    parser.add_argument("--early_stopping_patience", type=int, default=0,
+                        help="0 = disabled; N>0 = stop after N epochs without improvement")
     parser.add_argument("--seed",                  type=int,   default=42)
     args = parser.parse_args()
 
@@ -145,6 +146,7 @@ def main():
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type="cosine",
         weight_decay=0.01,
+        label_smoothing_factor=0.1,  # regularise against overconfidence on small dataset
 
         # ---- precision ----
         bf16=True,           # L40 has native BF16 support (Ada Lovelace)
@@ -160,8 +162,8 @@ def main():
         logging_steps=10,
         save_total_limit=3,
         load_best_model_at_end=True,
-        metric_for_best_model="rougeL",
-        greater_is_better=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
 
         # ---- misc ----
         seed=args.seed,
@@ -181,7 +183,10 @@ def main():
         processing_class=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)],
+        callbacks=(
+            [EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)]
+            if args.early_stopping_patience > 0 else []
+        ),
     )
 
     print("=" * 60)
