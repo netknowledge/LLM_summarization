@@ -8,7 +8,8 @@ import nltk
 from nltk.tokenize import word_tokenize
 
 nltk.download('punkt', quiet=True)
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_PORT = '9903' # don't use default 11434 to avoid being misused by other local users.
+OLLAMA_URL = f"http://127.0.0.1:{OLLAMA_PORT}/api/generate"
 
 def remove_think_content(text):
     # Remove all <think>...</think> tags and their content (including multi-line)
