@@ -6,7 +6,7 @@ High-quality scientific extreme summary (TLDR) facilitates effective science com
 ## Data
 1. **LLM-generated summaries**: `data/paper_html_10.1038/abs_annotation/generated_annotations`
 
-2. **Human-authored summaries**: `data/BiomedTLDR_dataset.tsv`
+2. **Human-authored summaries**: `data/BiomedTLDR_dataset.tsv` or check our dataset at [Hugging Face](https://huggingface.co/datasets/Keylab/BiomedTLDR)
 
 ## Experiment code
 
