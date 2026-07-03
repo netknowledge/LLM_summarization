@@ -1,6 +1,7 @@
 api_key/
 .env
 archive/
+paper/
 data/paper_html_10.1038/abs_annotation/1
 data/paper_html_10.1038/abs_annotation/4
 data/paper_html_10.1038/abs_annotation/6

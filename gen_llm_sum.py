@@ -8,7 +8,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 
 nltk.download('punkt', quiet=True)
-OLLAMA_PORT = '9903' # don't use default 11434 to avoid being misused by other local users.
+OLLAMA_PORT = '9903'
 OLLAMA_URL = f"http://127.0.0.1:{OLLAMA_PORT}/api/generate"
 
 def remove_think_content(text):
@@ -28,13 +28,16 @@ def main():
                         help="Override model file temperature (e.g. 0.0 for greedy, 1.0 for default)")
     parser.add_argument("--max_new_tokens", type=int, default=None,
                         help="Override max tokens to generate (Ollama: num_predict)")
+    parser.add_argument("--num_batch", type=int, default=2048, help="Number of abstracts to process in a batch (default: 2048)")
     args = parser.parse_args()
     model_name = args.model_name
     start_index = args.start_index
     abstract_type = args.abstract_type
+    num_batch = args.num_batch
 
     # Build Ollama options overrides (only include keys explicitly set by user)
     ollama_options = {}
+    ollama_options["num_batch"] = num_batch
     if args.temperature is not None:
         ollama_options["temperature"] = args.temperature
     if args.max_new_tokens is not None:
@@ -72,7 +75,9 @@ def main():
             }
             if ollama_options:
                 payload["options"] = ollama_options
-            if model_name in ['qwen3', 'gpt_oss', 'deepseek_r1', 'gemma4', 'qwen3.6']:
+            if model_name == 'gpt_oss':
+                payload['think'] = 'low'
+            elif model_name in ['qwen3', 'deepseek_r1', 'gemma4', 'qwen3.6']:
                 payload['think'] = False
 
             response = requests.post(OLLAMA_URL, json=payload)

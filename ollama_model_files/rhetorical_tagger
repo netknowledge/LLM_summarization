@@ -2,6 +2,7 @@ FROM deepseek-r1:70b
 
 PARAMETER temperature 0
 PARAMETER top_p 0.9
+PARAMETER num_ctx 4096
 
 SYSTEM """
 You are a specialized text classification assistant for academic paper abstracts.

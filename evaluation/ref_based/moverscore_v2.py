@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 from transformers import AutoTokenizer, AutoModel
 
-device = 'cuda'
+device = os.environ.get('MOVERSCORE_DEVICE', 'cuda:0')
 
 if os.environ.get('MOVERSCORE_MODEL'):
     model_name = os.environ.get('MOVERSCORE_MODEL')
@@ -46,8 +46,12 @@ def get_idf_dict(arr, nthreads=4):
 
     process_partial = partial(process)
 
-    with Pool(nthreads) as p:
-        idf_count.update(chain.from_iterable(p.map(process_partial, arr)))
+    if nthreads <= 1:
+        # Serial fallback — avoids daemonic-child restriction inside mp.Pool workers
+        idf_count.update(chain.from_iterable(map(process_partial, arr)))
+    else:
+        with Pool(nthreads) as p:
+            idf_count.update(chain.from_iterable(p.map(process_partial, arr)))
 
     idf_dict = defaultdict(lambda : log((num_docs+1)/(1)))
     idf_dict.update({idx:log((num_docs+1)/(c+1)) for (idx, c) in idf_count.items()})
